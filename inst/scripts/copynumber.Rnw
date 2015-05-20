@@ -1,0 +1,226 @@
+  Copy number routines in the \crlmm{} package are available for
+  Affymetrix 5.0 and 6.0 platforms, as well as several Illumina
+  platforms.  This vignette assumes that the arrays have already been
+  successfully preprocessed and genotyped as per the instructions in
+  the \verb+AffyGW+ and \verb+IlluminaPreprocessCN+
+  vignettes for the Affymetrix and Illumina platforms,
+  respectively. While this vignette uses Affymetrix 6.0 arrays for
+  illustration, the steps at this point are identical for both
+  platforms.  See \citep{Scharpf2011} for details regarding the
+  methodology implemented in \crlmm{} for copy number analysis.  In
+  addition, a compendium describing copy number analysis using the
+  \crlmm{} package is available from the author's website:
+  \url{http://www.biostat.jhsph.edu/~rscharpf/crlmmCompendium/index.html}.
+
+
+\textbf{Limitations:} While a minimum number of samples is not
+required for preprocessing and genotyping, copy number estimation in
+the \crlmm{} package currently requires at least 10 samples per batch.
+The parameter estimates for copy number and the corresponding
+estimates of raw copy number will tend to be more noisy for batches
+with small sample sizes (e.g., $<$ 50).  Chemistry plate or scan date
+are often useful surrogates for batch.  Samples that were processed at
+similar times (e.g., in the same month) can be grouped together in the
+same batch.
+
+\section{Quality control}
+
+The signal to noise ratio (SNR) estimated by the CRLMM genotyping
+algorithm is an overall measure of the separation of the diallelic
+genotype clusters at polymorphic loci and can be a useful measure of
+array quality.  Small SNR values can indicate possible problems with
+the DNA.  Depending on the size of the dataset and the number of
+samples with low SNR, users may wish to rerun the preprocessing and
+genotyping steps after excluding samples with low SNR.  The SNR is
+stored in the \verb+phenoData+ slot of the \Robject{CNSet} object and
+is available after preprocessing and genotyping. SNR values below 5
+for Affymetrix or below 25 for Illumina may indicate poor sample
+quality.  The following code chunk makes a histogram of the SNR values
+for the HapMap samples.
+
+<<snr,fig=TRUE,include=FALSE,width=6, height=4>>=
+library(lattice)
+invisible(open(cnSet$SNR))
+snr <- cnSet$SNR[]
+close(cnSet$SNR)
+print(histogram(~snr,
+		panel=function(...){
+			panel.histogram(...)},
+		breaks=25, xlim=range(snr), xlab="SNR"))
+@
+
+
+
+\section{Copy number estimation}
+
+There are two ways to obtain marker-level estimates of copy number
+that are supported by \Rpackage{crlmm}. One approach is to fit a
+linear model to the normalized intensities stratified by the diallelic
+genotype call at each SNP, as described in \cite{Scharpf2011}.
+Another alternative is to compute log R ratio and B allele
+frequencies. The latter is often better supported by downstream hidden
+Markov models such as those in the \Rpackage{VanillaICE} package. We
+describe each approach in the following two sections.
+
+\subsection{Linear model for normalized intensities}
+
+In this section, we fit a linear model to the normalized intensities
+stratified by the diallic genotype call.  The intercept and slope from
+the linear model are both SNP- and batch-specific.  The implementation
+in the \crlmm{} package is encapsulated by the function
+\Rfunction{crlmmCopynumber} that, using the default settings, can be
+called by passing a single object of class \Rclass{CNSet}.
+
+<<LDS_copynumber,cache=TRUE>>=
+crlmmCopynumber(cnSet)
+@
+
+The following steps were performed by the \Rfunction{crlmmCopynumber}
+function:
+\begin{itemize}
+\item sufficient statistics for the genotype clusters for
+  each batch
+\item unobserved genotype centers imputed
+\item posterior summaries of sufficient statistics
+\item intercept and slope for linear model
+\end{itemize}
+Depending on the value of \verb+ocProbesets()+, these summaries are
+computed for subsets of the markers to reduce the required RAM. Note
+that the value returned by the \Rfunction{crlmmCopynumber} function in
+the above example is \verb+TRUE+.  The reason the function returns
+\verb+TRUE+ in the above example is that the elements of the
+\verb+batchStatistics+ slot have the class \Rclass{ff\_matrix}.
+Rather than keep the statistical summaries in memory, the summaries
+are written to files on disk using protocols described in the
+\Rpackage{ff} package. Hence, while the \Robject{cnSet} object itself
+is unchanged as a result of the \Rfunction{crlmmCopynumber} function,
+the data on disk is updated accordingly.  Users that are interested in
+accessing these low-level summaries can refer to the
+\verb+Infrastructure+ vignette.  Note that the data structure depends
+on whether the elements of the \verb+batchStatistics+ slot are
+\Robject{ff} objects or ordinary matrices.  In this example, the
+elements of \verb+batchStatistics+ have the class \Rclass{ff\_matrix}.
+
+<<classes>>=
+nms <- ls(batchStatistics(cnSet))
+cls <- rep(NA, length(nms))
+for(i in seq_along(nms)) cls[i] <- class(batchStatistics(cnSet)[[nms[i]]])[1]
+all(cls == "ff_matrix")
+@
+
+The batch-specific statistical summaries computed by
+\Robject{crlmmCopynumber} are written to files on disk using protocols
+described in the \R{} package \Rpackage{ff}. The value returned by
+\Rfunction{crlmmCopynumber} is \verb+TRUE+, indicating that the files
+on disk have been successfully updated.  Note that while the
+\Robject{cnSet} object is unchanged, the values on disk are different.
+
+
+<<chr1index>>=
+chr1.index <- which(chromosome(cnSet) == 1)
+open(cnSet)
+@
+
+<<subset,cache=TRUE>>=
+cnSet2 <- cnSet[chr1.index, ]
+@
+
+<<valuematrix>>=
+close(cnSet)
+for(i in seq_along(nms)) cls[i] <- class(batchStatistics(cnSet2)[[nms[i]]])[1]
+all(cls == "matrix")
+@
+
+<<clean, echo=FALSE, results=hide>>=
+rm(cnSet2); gc()
+@
+
+\paragraph{Raw total copy number.}
+Several functions are available that will compute relatively quickly
+the allele-specific, \emph{raw} copy number estimates. At allele $k$,
+marker $i$, sample $j$, and batch $p$, the estimate of allele-specific
+copy number is computed by subtracting the estimated background from
+the normalized intensity and scaling by the slope coefficient. More
+formally, \newcommand{\A}{A} \newcommand{\B}{B}
+\begin{eqnarray}
+  \label{eq:cnK}
+{\hat c}_{k,ijp} &=& \mbox{max}\left\{\frac{1}{{\hat
+    \phi}_{k,ip}}\left(I_{k,ijp}-{\hat \nu}_{k,ip}\right), ~0\right\}
+\mbox{~for~} k \in \{\A, \B\}.
+\end{eqnarray}
+\noindent See \cite{Scharpf2011} for details.
+
+The function \Rfunction{totalCopynumber} translates the normalized
+intensities to an estimate of raw copy number by adding the
+allele-specific summaries in Equation \eqref{eq:cnK}. For large
+datasets, the calculation will not be instantaneous as the I/O can be
+substantial.  Users should specify either a subset of the markers or a
+subset of the samples to avoid using all of the available RAM.  For
+example, in the following code chunk we compute the total copy number
+at all markers for the first 2 samples, and the total copy number for
+chromosome 20 for the first 50 samples.
+
+<<totalCopynumber>>=
+tmp <- totalCopynumber(cnSet, i=seq_len(nrow(cnSet)), j=1:2)
+dim(tmp)
+tmp2 <- totalCopynumber(cnSet, i=which(chromosome(cnSet) == 20), j=seq_len(ncol(cnSet)))
+dim(tmp2)
+@
+
+Alternatively, the functions \Rfunction{CA} and \Rfunction{CB} compute
+the allele-specific copy number.  For instance, the following code
+chunk computes the allele-specific summaries at all polymorphic loci
+for the first 2 samples.
+
+<<ca>>=
+snp.index <- which(isSnp(cnSet) & !is.na(chromosome(cnSet)))
+ca <- CA(cnSet, i=snp.index, j=1:2)
+cb <- CB(cnSet, i=snp.index, j=1:2)
+@
+
+
+\subsection{Container for log R ratios and B allele frequencies}
+\label{sec:lrrBaf}
+
+A useful container for storing the \crlmm{} genotypes, genotype
+confidence scores, and the total or relative copy number at each
+marker is the \Rclass{BafLrrSetList} class.  Coercion of a
+\Rclass{CNSet} object to a \Rfunction{BafLrrSetList} object can be
+acheived by the function \Rfunction{BafLrrSetList} as
+illustrated below. Users should note that if the \verb+assayData+
+elements in the \Rclass{CNSet} instance are \Rpackage{ff} objects, the
+\verb+assayData+ elements of each element in the \Rclass{BafLrrSetList}
+object will be \Rpackage{ff}-dervied objects (a new
+\verb+total_cn*.ff+ file will be created in the \verb+ldPath()+
+directory). The following code-chunk is not evalutated.
+
+Estimation of log R ratios and B allele frequencies from an object of class \Rclass{CNSet} instantiated from genotyping Affymetrix CEL files or Illumina iDat files requires running the \R{} function \Rfunction{crlmmCopynumber} as a preliminary step.  Specifying \texttt{fit.linearModel=FALSE} will speed up computation as this function will by default compute summary statistics unnecessary for computing BAFs and log R ratios.
+
+<<callingCrlmmCopynumber,eval=FALSE>>=
+crlmmCopynumber(cnSet, fit.linearModel=FALSE)
+@
+
+<<oligoSnpSet>>=
+open(cnSet)
+oligoSetList <- BafLrrSetList(cnSet)
+close(cnSet)
+show(oligoSetList)
+class(oligoSetList)
+## oligoSnpSet of first chromosome
+oligoSetList[[1]]
+@
+
+\noindent Log R ratios and B allele frequences can be retrieved by the
+accessors \Rfunction{lrr} and \Rfunction{baf}, respectively.
+
+<<testEqual>>=
+lrrList <- lrr(oligoSetList)
+class(lrrList)
+dim(lrrList[[1]]) ## log R ratios for chromosome 1.
+bafList <- baf(oligoSetList)
+dim(bafList[[1]]) ## B allele frequencies for chromosome 1
+@
+
+If the \Rfunction{crlmmCopynumber} function is not run prior to the
+\Rfunction{BafLrrSetList} construction, the log R ratios and BAFs will
+be initialized as NAs.

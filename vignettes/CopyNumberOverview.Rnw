@@ -1,0 +1,62 @@
+%\VignetteIndexEntry{Overview of copy number vignettes}
+%\VignetteDepends{}
+%\VignetteKeywords{}
+%\VignettePackage{crlmm}
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{url}
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+\newcommand{\Rcode}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textsf{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+\newcommand{\oligo}{\Rpackage{oligo }}
+\newcommand{\R}{\textsf{R}}
+\newcommand{\crlmm}{\Rpackage{crlmm}}
+\newcommand{\ff}{\Rpackage{ff}}
+\usepackage[margin=1in]{geometry}
+
+\begin{document}
+\title{Overview of vignettes for copy number estimation}
+\date{\today}
+\author{Rob Scharpf}
+\maketitle
+
+The workflow for copy number analyses in the \crlmm{} package includes
+preprocessing and genotyping of the raw intensities followed by
+estimation of parameters for copy number estimation using
+\Rfunction{crlmmCopynumber}.  Supported platforms are those for which
+a corresponding annotation package is available.  Table \ref{overview}
+provides an overview of the available vignettes pertaining to copy
+number estimation.  These vignettes are located in the
+\verb+inst/scripts+ subdirectory of the \crlmm{} package. HapMap
+datasets are used to illustrate the workflow and are not provided as
+part of the \crlmm{} package.  Users wishing to reproduce the analysis
+should download the HapMap CEL files (Affymetrix) or the \verb+idat+
+files (Illumina) and modify the paths to the raw data files as
+appropriate.
+
+\begin{table}[h!]
+\begin{center}
+\begin{tabular}{|lp{1.2in}p{1.5in}p{2in}|}
+\hline
+ Vignette  &  Platform &  Annotation package  &  Scope  \\\hline
+Infrastructure   & Affy/Illumina  & &  The CNSet container / large data support using the \Rpackage{ff} package            \\
+ AffyGW  &  Affy 5.0, 6.0       &  genomewidesnp5crlmml, genomewidesnp6Crlmm  &  Preprocessing, genotyping, CN estimation\\
+ IlluminaPreprocessCN    &  Illumina  &  several$^\dagger$ &
+                  Preprocessing, genotyping, CN estimation\\ \hline
+\end{tabular}
+\end{center}
+\caption{\label{overview} Vignettes for copy number
+  estimation. $^\dagger$ See \texttt{annotationPackages()} for a
+  complete listing of supported Illumina/Affy platforms}
+\end{table}
+
+The \verb+Infrastructure+ vignette provides additional details on the
+\Rclass{CNSet} container used to organize the processed data as well
+as a brief discussion regarding large data support through the \ff{}
+package.
+
+\end{document}

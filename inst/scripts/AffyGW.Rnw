@@ -1,0 +1,246 @@
+%\VignetteIndexEntry{Preprocessing and genotyping Affymetrix arrays
+%for copy number analysis}
+%\VignetteDepends{crlmm, genomewidesnp6Crlmm, cacheSweave, ff}
+%\VignetteKeywords{crlmm, SNP 6, copy number, SNP}
+%\VignettePackage{crlmm}
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{url}
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+\newcommand{\Rcode}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textsf{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+\newcommand{\oligo}{\Rpackage{oligo }}
+\newcommand{\R}{\textsf{R}}
+\newcommand{\crlmm}{\Rpackage{crlmm}}
+\usepackage[margin=1in]{geometry}
+
+\begin{document}
+\title{Preprocessing \& Genotyping Affymetrix Arrays for Copy Number Analysis}
+\date{\today}
+\author{Rob Scharpf}
+\maketitle
+
+<<setup, echo=FALSE, results=hide>>=
+options(continue=" ", width=70)
+@
+
+%\section{Estimating copy number}
+
+%At present, software for copy number estimation is provided only for the
+%Affymetrix 6.0 platform.
+
+\begin{abstract}
+
+  This vignette describes the setup needed to analyze Affymetrix 6.0
+  (or 5.0) CEL files and the steps for preprocessing and
+  genotyping. These steps must be completed prior to copy number
+  analyses in \crlmm{}.  After completing these steps, users can refer
+  to the \verb+copynumber+ vignette.
+
+\end{abstract}
+
+\section{Set up}
+
+<<cdfname, results=hide>>=
+library(oligoClasses)
+library2(crlmm)
+library2(ff)
+if(!exists("useCache")) useCache <- TRUE
+if(useCache) library2(cacheSweave)
+@
+
+This vignette analyzes HapMap samples assayed on the Affymetrix 6.0
+platform.  The annotation package for this platform is
+\Rpackage{genomewidesnp6Crlmm}.  We assign the name of the annotation
+package without the \verb+Crlmm+ postfix to the name \verb+cdfName+.
+We use the \R{} package \Rpackage{cacheSweave} to cache long
+computations in this vignette.  Users should refer to the
+\Rpackage{cacheSweave} package for additional details regarding
+cacheing.
+
+<<cdfname>>=
+cdfName <- "genomewidesnp6"
+@
+
+The HapMap CEL files are stored in a local directory assigned to
+\verb+pathToCels+ in the following code. The genotyping step will
+create several files with \verb+ff+ extensions. The ff objects contain
+the low-level, normalized intensities as well as parameters used to
+subsequently estimate copy number and B allele frequencies. These
+files should not be deleted or moved.  We will store these files to
+the path indicated by \verb+outdir+.
+
+<<setup>>=
+pathToCels <- "/thumper/ctsa/snpmicroarray/hapmap/raw/affy/1m"
+v <- paste0("crlmm_v", gsub("\\.", "_", packageDescription("crlmm")$Version))
+outdir <- file.path("/thumper/ctsa/snpmicroarray/rs/ProcessedData", v)
+dir.create(outdir, recursive=TRUE, showWarnings=FALSE)
+@
+
+By providing the path in \verb+outdir+ as an argument to the \R{}
+function \Rfunction{ldPath}, all of the \verb+ff+ files created during
+the genotyping step will be stored in \verb+outdir+.
+
+<<ldpath>>=
+ldPath(outdir)
+@
+
+% only needed if cacheing
+<<cachedir, echo=FALSE>>=
+if(useCache) setCacheDir(outdir)
+@
+
+The \R{} functions \Rfunction{ocProbesets} and \Rfunction{ocSamples}
+manage the RAM required for our analysis. See the documentation for
+these functions and the \verb+CopyNumberOverview+ vignette for
+additional details.
+
+<<ram>>=
+ocProbesets(100000)
+ocSamples(200)
+@
+
+
+Next we indicate the local directory that contains the CEL files. For
+the purposes of this vignette, we only analyze the CEPH ('C') and
+Yoruban ('Y') samples.
+
+<<celfiles>>=
+celFiles <- list.celfiles(pathToCels, full.names=TRUE, pattern=".CEL")[1:10]
+celFiles <- celFiles[substr(basename(celFiles), 13, 13) %in% c("C", "Y")]
+if(exists("file.index")){
+	celFiles <- celFiles[file.index]
+}
+@
+
+Finally, copy number analyses using \crlmm{} require specification of
+a batch variable that is used to indicate which samples were processed
+together.  For example, if some of the samples were processed in April
+and another set of samples were processed in June, we could name the
+batches 'April' and 'June', respectively.  A useful surrogate for
+batch is often the chemistry plate or the scan date of the array. For
+the HapMap CEL files analyzed in this vignette, the CEPH (C) and
+Yoruban (Y) samples were prepared on separate chemistry plates.  In
+the following code chunk, we extract the population identifier from
+the CEL file names and assign these identifiers to the variable
+\Robject{plate}.
+
+<<plates>>=
+plates <- substr(basename(celFiles), 13, 13)
+@
+
+\section{Preprocessing and genotyping.}
+
+The preprocessing steps for copy number estimation includes quantile
+normalization of the raw intensities for each probe and a step that
+summarizes the intensities of multiple probes at a single locus.  For
+example, the Affymetrix 6.0 platform has 3 or 4 identical probes at
+each polymorphic locus and the normalized intensities are summarized
+by a median.  For the nonpolymorphic markers on Affymetrix 6.0, only
+one probe per locus is available and the summarization step is not
+needed.  After preprocessing the arrays, the \crlmm{} package
+estimates the genotype using the CRLMM algorithm and provides a
+confidence score for the genotype calls.   To begin, we initialize a
+container for the normalized intensities:
+
+<<constructCNSet, cache=TRUE>>=
+cnSet <- constructAffyCNSet(celFiles, batch=plates,
+			    cdfName="genomewidesnp6",
+			    genome="hg19")
+@
+
+
+We quantile normalize the SNPs and nonpolymorphic markers separately.
+Since the normalized intensities are ff objects, the functions
+\Rfunction{cnrmaAffy} and \Rfunction{snprmaAffy} write the normalized
+intensities to disk and nothing is returned.
+
+<<cnrmaAffy, cache=TRUE>>=
+cnrmaAffy(cnSet)
+@
+
+Any segment fault that occurs during the normalization can often be
+traced to a corrupt cel file. To check if any of the files are
+corrupt, one can use the function \Rfunction{validCEL} that tries to
+read each files as in the following unevaluated codechunk:
+
+<<checkcorrupt,eval=FALSE>>=
+validCEL(celFiles)
+@
+
+<<snprmaAffy, cache=TRUE>>=
+snprmaAffy(cnSet)
+@
+
+The function \Rfunction{genotypeAffy} performs performs the genotyping.
+
+<<genotypeAffy, cache=TRUE>>=
+genotypeAffy(cnSet, gender=NULL)
+@
+
+The above function also imputes the gender from the chromosome X and Y
+intensities when the argument gender is \texttt{NULL}. The imputed
+genders are
+
+<<gender>>=
+table(c("male", "female")[cnSet$gender[]])
+@
+
+<<genderCheck,echo=FALSE>>=
+if(any(is.na(cnSet$gender[]))) stop("missing genders")
+@
+
+The normalized intensities, genotype calls, and confidence scores are
+stored as \verb+ff+ objects in the \verb+assayData+ slot.  A concise
+summary of this object can be obtained throught the \Rfunction{print}
+or \Rfunction{show} methods.
+
+<<show>>=
+print(cnSet)
+@
+
+Note that the object is relatively small as the intensities and
+genotype calls are stored on disk rather than in active memory.
+
+<<objectsize>>=
+print(object.size(cnSet), units="Mb")
+@
+
+\SweaveInput{copynumber}
+
+A sample-specific estimate of the signal to noise ratio (SNR)
+measuring the overall separation of the genotypes provides a measure
+of sample quality.  Samples with SNRs below 5 typically indicate poor
+quality, and typically have genotypes with lower confidence scores and
+noisier copy number estimates.  The SNR is stored in the
+\Robject{phenoData} slot of the \Rclass{CNSet} class and can be
+accessed using the ``\$" operator.
+
+
+\section{Session information}
+<<sessionInfo, results=tex>>=
+toLatex(sessionInfo())
+@
+
+
+\begin{figure}[f]
+  \begin{center}
+  \includegraphics[width=0.6\textwidth]{AffyGW-snr.pdf}
+  \caption{The signal to noise ratio (SNR) for 180 HapMap samples. For
+    Affymetrix platforms, SNR values below 5 can indicate possible
+    problems with sample quality.  }
+\end{center}
+\end{figure}
+
+
+%\begin{bibliography}
+  \bibliographystyle{plain}
+  \bibliography{refs}
+%\end{bibliography}
+
+\end{document}

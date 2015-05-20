@@ -1,0 +1,11 @@
+%\VignetteIndexEntry{Infrastructure for copy number analysis}
+%\VignetteDepends{crlmm, genomewidesnp6Crlmm}
+%\VignetteKeywords{crlmm, SNP 6, copy number}
+%\VignettePackage{crlmm}
+
+%%% The real .Rnw is under inst/scripts.
+%%% It cannot be added here because it depends on external
+%%% data not yet available as a BioC package
+\documentclass{article}
+\begin{document}
+\end{document}

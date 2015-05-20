@@ -1,0 +1,67 @@
+## IMPORTANT 
+- move IRanges and oligoClasses back to Suggests? BC moved them to
+Depends just to get rid of annoying warnings while transitioning.
+
+#####################################
+### FOR CRLMM
+#####################################
+- Add RS ids to annotation packages
+- Allele plots
+- M v S plots
+
+R. Scharpf (after next release)
+
+- crlmm should return a SnpSet object with elements A, B, calls, and
+  confs in the assayData when save.it=TRUE.  These objects can be very
+  big, so...  
+
+- crlmm function should have an option to return nothing and write to
+  file a SnpSet object for each chromosome.  This would help the copy
+  number part that runs by chromosome
+
+B Carvalho
+
+- crlmm should return results in CHP files
+
+- crlmm2() with save.it=TRUE must save the original preprocessed intensities
+
+  ***********************************************************
+  *                                                         *       
+  *                FOR CNRMA                                *
+  *                                                         *
+  ***********************************************************
+
+  o Bias adjustment for X chromosome
+
+  o Adjust nu for altered copy number (crosshyb)
+
+  o Should store parameters in something besides the featureData slot
+
+    - Perhaps add a matrix slot for parameters and a slot for batch.
+
+    - Need accessors
+
+    - how to store parameters for chromosome X (should be nu_A_male,
+      nu_A_female, etc.)?
+
+  o Provide a SNP- and sample-specific estimate of the variance for
+    computing emission probabilities.  (Currently, only SNP-specific)
+
+    (DONE -- version 1.3.10
+
+  o Allow a copy-neutral ROH state by not having an equal prior on the
+    ellipses.  For instance,
+
+    normal state:  1/4 AA, 1/2 AB, 1/4 BB
+    
+    copy-neutral ROH:  (1-epsilon)/2 AA,  epsilon AB,  (1-epsilon)/2
+    BB
+
+  o Define a class that contains settings for genotyping/copynumber estimation
+
+
+
+
+
+
+

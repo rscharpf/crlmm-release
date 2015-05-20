@@ -1,0 +1,183 @@
+%\VignetteIndexEntry{From Genotypes to Association}
+%\VignetteKeywords{genotype, crlmm, SNP 5, SNP 6}
+%\VignettePackage{crlmm}
+
+\documentclass[12pt]{article}
+
+\usepackage{amsmath}
+\usepackage[authoryear,round]{natbib}
+\usepackage{hyperref}
+
+
+\textwidth=6.2in
+\textheight=8.5in
+%\parskip=.3cm
+\oddsidemargin=.1in
+\evensidemargin=.1in
+\headheight=-.3in
+
+\newcommand{\scscst}{\scriptscriptstyle}
+\newcommand{\scst}{\scriptstyle}
+
+
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textit{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+\newcommand{\Rfunarg}[1]{{\texttt{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+
+\textwidth=6.2in
+
+\bibliographystyle{plainnat}
+
+\begin{document}
+%\setkeys{Gin}{width=0.55\textwidth}
+
+\title{crlmm to downstream data analysis}
+\author{VJ Carey, B Carvalho}
+\date{March, 2012}
+\maketitle
+
+\section{Running CRLMM on a nontrivial set of CEL files}
+To use the \Rmethod{crlmm} algorithm, the user must load the
+\Rpackage{crlmm} package, as described below:
+<<loadPkg>>=
+library(crlmm)
+@
+
+We work with the 90 CEU samples hybridized to Affy 6.0 chips. When CEL
+files are available, they must be identified and passed to
+\Rmethod{crlmm}, as shown below. In this example, we assume that the
+results are stored in a variable called \Robject{crlmmResult}.
+<<lkd, eval=FALSE>>=
+celFiles <- list.celfiles()
+crlmmResult <- crlmm(celFiles)
+@
+
+Alternatively, the data aforementioned are available through the
+\Rpackage{hapmapsnp6} package (required minimum version $1.3.6$) and can
+be loaded by using:
+
+<<loadFromPkg>>=
+suppressPackageStartupMessages(library(hapmapsnp6))
+data(crlmmResult)
+@
+
+This is currently a \Rclass{SnpSet} object.
+<<lkj21>>=
+  class(crlmmResult)
+@
+
+%% In order to reduce the memory requirements for this task, we will use
+%% only results for chromosome 20.
+%%
+%% <<getSubset>>=
+%% @
+
+\section{Adding information to a \Rclass{SnpSet}}
+
+We will use the \Rpackage{GGdata} package to obtain extra information
+on the samples. This will be later used when building an \Rclass{eSet}
+extension to store the genotyping results.
+<<getpd>>=
+  suppressPackageStartupMessages(library(GGdata))
+  hmceuB36 <- getSS('GGdata', as.character(1:22))
+  pd <- phenoData(hmceuB36)
+  ggn <- sampleNames(pd)
+  preSN <- sampleNames(crlmmResult)
+  simpSN <- gsub("_.*", "", preSN)
+  if (!all.equal(simpSN, ggn)) stop("align GGdata phenoData with crlmmResult read")
+@
+
+The additional information obtained from \Rpackage{GGdata} can be
+easily combined to what is already available on \Robject{crlmmResult}.
+<<docl>>=
+  sampleNames(crlmmResult) <- simpSN
+  phenoData(crlmmResult) <- combine(pd, phenoData(crlmmResult))
+  dim(calls(crlmmResult))
+  dim(confs(crlmmResult, FALSE))
+  calls(crlmmResult)[1:10, 1:2]
+  confs(crlmmResult, FALSE)[1:10, 1:2]
+@
+
+
+\section{Coercing to SnpMatrix as a prelude to a GWAS}
+
+From this point on, we will use only the genotype calls. Therefore, to
+reduce memory requirements, we will recode the \Rpackage{crlmm} genotype
+calls, so the \Rpackage{snpStats} package can be used, and delete the
+remaining \Rmethod{crlmm} results.
+<<clean>>=
+theCalls <- t(calls(crlmmResult))-1L
+rm(crlmmResult)
+@
+
+<<morecleaning, echo=FALSE>>=
+gc()
+@
+
+SNP's for which all the samples have the same genotype are not
+informative for association studies. Therefore, we remove such SNP's
+prior to fitting the models.
+
+<<rmNonInformative>>=
+gtypeCounts <- rbind(AA=colSums(theCalls == 0L),
+                     AB=colSums(theCalls == 1L),
+                     BB=colSums(theCalls == 2L))
+gtypeCounts[, 1:5]
+toRemove <- which(colSums(gtypeCounts == 0) == 2L)
+gtypeCounts[, toRemove[1:4]]
+theCalls <- theCalls[, -toRemove]
+@
+
+The \Rpackage{snpStats} provides tools to simplify the analysis of
+GWAS. The snippet below shows how to load the package and convert the
+genotype calls to a format that \Rpackage{snpStats} is able to handle.
+<<lksnm>>=
+suppressPackageStartupMessages(library(snpStats))
+crlmmSM <- new("SnpMatrix", theCalls)
+crlmmSM
+@
+
+\section{Conducting a GWAS}
+
+We want to find SNP for which genotype is predictive of expression of CPNE1.
+We will use expression data available from GGdata, using a naive analysis.
+<<doa>>=
+suppressPackageStartupMessages(library(illuminaHumanv1.db))
+rmm <- revmap(illuminaHumanv1SYMBOL)
+mypr <- get("CPNE1", rmm)
+ex <- as.numeric(exprs(hmceuB36)[mypr[1],])
+subjdata <- pData(hmceuB36)
+subjdata[["ex"]] <- ex
+head(subjdata)
+@
+
+With the expression data now available in \Robject{subjdata}, we can use
+the tools from \Rpackage{SnpMatrix} to fit models that will be used to
+evaluate the association between the genotypes of each available SNP and
+the expression levels of CPNE1.
+<<model>>=
+gwas <- snp.rhs.tests(ex~male, data=subjdata, snp.data=crlmmSM, family="gaussian")
+ok <- which(p.value(gwas) < 1e-10)
+gwas[ok,]
+@
+
+<<dopl,fig=TRUE>>=
+snp <- names(gwas[ok,])[1]
+gtypes <- theCalls[,snp]+1L
+boxplot(ex~gtypes, xlab=paste("Genotype Call for", snp),
+        ylab="CPNE1 Expression", xaxt="n", range=0)
+points(ex~jitter(gtypes), col=gtypes, pch=19)
+axis(1, at=1:3, labels=c("AA", "AB", "BB"))
+@
+
+\section{Session Info}
+
+This vignette was created using the following packages:
+<<lksess>>=
+sessionInfo()
+@
+
+\end{document}

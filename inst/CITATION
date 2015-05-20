@@ -1,0 +1,72 @@
+citHeader("To cite crlmm in publications use:")
+
+citEntry(entry="article",
+  title  = "Quantifying uncertainty in genotype calls",
+  author = paste("Benilton S Carvalho and",
+                 "Thomas A Louis and",
+                 "Rafael A Irizarry"),
+  journal = "Bioinformatics",
+  year = "2010",
+  volume = "15;26(2)",
+  pages = "242-9",
+  textVersion = paste("Carvalho BS, Louis TA, Irizarry RA.",
+                      "Quantifying uncertainty in genotype calls.",
+                      "Bioinformatics. 2010 Jan 15;26(2):242-9."))
+
+citEntry(entry="article",
+  title  = "R/Bioconductor software for Illumina's Infinium whole-genome genotyping BeadChips",
+  author = paste("Matthew E Ritchie and",
+                 "Benilton S Carvalho and",
+                 "Kurt N Hetrick and",
+                 "Simon Tavar\'e and",
+                 "Rafael A Irizarry"),
+  journal = "Bioinformatics",
+  year = "2009",
+  volume = "25(19)",
+  pages = "2621-3",
+  textVersion = paste("Ritchie ME, Carvalho BS, Hetrick KN, Tavar\'e S.",
+                      "R/Bioconductor software for Illumina's Infinium whole-genome genotyping BeadChips.",
+                      "Bioinformatics. 2009 Oct 1;25(19):2621-3."))
+
+citEntry(entry="article",
+  title  = "A multilevel model to address batch effects in copy number estimation
+	using SNP arrays",
+  author = paste("Robert B Scharpf and",
+                 "Ingo Ruczinski and",
+		 "Benilton Carvalho and",
+		 "Betty Doan and",
+		 "Aravinda Chakravarti and",
+		 "Rafael A Irizarry"),
+  journal = "Biostatistics",
+  year = "2011",
+  volume="12",
+  pages="33--50",
+  textVersion = paste("Scharpf RB, Ruczinski I, Carvalho B, Doan B, Chakravarti A, Irizarry RA",
+                      "A multilevel model to address batch effects in copy number estimation using SNP arrays",
+		      "Biostatistics. 2011."))
+
+citEntry(entry = "Article",
+  title        = "Using the {R} Package {crlmm} for Genotyping and Copy Number Estimation",
+  author       = personList(as.person("Robert B. Scharpf"),
+                   as.person("Rafael A. Irizarry"),
+                   as.person("Matthew E. Ritchie"),
+                   as.person("Benilton Carvalho"),
+                   as.person("Ingo Ruczinski")),
+  journal      = "Journal of Statistical Software",
+  year         = "2011",
+  volume       = "40",
+  number       = "12",
+  pages        = "1--32",
+  url          = "http://www.jstatsoft.org/v40/i12/",
+
+  textVersion  =
+  paste("Robert B. Scharpf, Rafael A. Irizarry, Matthew E. Ritchie, Benilton Carvalho, Ingo Ruczinski (2011).",
+        "Using the R Package crlmm for Genotyping and Copy Number Estimation.",
+        "Journal of Statistical Software, 40(12), 1-32.",
+        "URL http://www.jstatsoft.org/v40/i12/.")
+)
+
+
+citFooter("We have invested a lot of time and effort in creating crlmm,",
+          "please cite it when using it for data analysis.")
+

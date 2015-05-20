@@ -1,0 +1,283 @@
+%\VignetteIndexEntry{IlluminaPreprocessCN Vignette for Illumina}
+%\VignetteDepends{crlmm, ff, cacheSweave}
+%\VignetteKeywords{crlmm, illumina, copy number, SNP}
+%\VignettePackage{crlmm}
+\documentclass{article}
+\usepackage{graphicx}
+\usepackage{natbib}
+\usepackage{amsmath}
+\usepackage{url}
+\usepackage[margin=1in]{geometry}
+\newcommand{\crlmm}{\Rpackage{crlmm}}
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+\newcommand{\Rcode}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textsf{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+\newcommand{\oligo}{\Rpackage{oligo }}
+\newcommand{\R}{\textsf{R}}
+\newcommand{\ff}{\Rpackage{ff}}
+
+\begin{document}
+\title{Preprocessing and Genotyping Illumina Arrays for Copy Number Analysis}
+
+\date{\today}
+
+\author{Rob Scharpf}
+\maketitle
+
+
+\begin{abstract}
+
+  This vignette illustrates the steps required prior to copy number
+  analysis for Infinium platforms.  Specifically, we require
+  construction of a container to store processed forms of the raw
+  data, preprocessing to normalize the arrays, and genotyping using
+  the CRLMM algorithm.  After completing these steps, users can refer
+  to the \verb+copynumber+ vignette.
+
+\end{abstract}
+
+
+\section{Set up}
+
+<<crlmm, results=hide, echo=FALSE>>=
+library(Biobase)
+library(crlmm)
+options(width=70)
+options(continue=" ")
+@
+
+%\textbf{Supported platforms:} The supported Infinium platforms are
+%those for which a corresponding annotation package is available.  The
+%annotation packages contain information on the markers, such as
+%physical position and chromosome, as well as pre-computed parameters
+%estimated from HapMap used during the preprocessing and genotyping
+%steps. Currently supported Infinium platforms are listed in the
+%following code chunk.
+The following codechunk declares a directory for saving \Robject{ff}
+files that will contain the normalized intensities and the genotype
+calls.
+
+<<ldpath,results=hide>>=
+library(ff)
+options(ffcaching="ffeachflush")
+outdir <- paste("/local_data/r00/crlmm/", getRversion(), "/illumina_vignette", sep="")
+ldPath(outdir)
+dir.create(outdir, recursive=TRUE, showWarnings=FALSE)
+@
+
+We will also store cached computations in the directory \verb+outdir+.
+
+<<cacheSweave, echo=FALSE, results=hide>>=
+library(cacheSweave)
+setCacheDir(outdir)
+@
+
+We declare that \crlmm{} should process 150,000 markers at a time
+and/or 500 samples at a time (when possible) to reduce the memory
+footprint.  As our example dataset in this vignette contains fewer
+than 500 samples, all samples will be processed simultaneously.
+
+<<ram>>=
+ocProbesets(150e3)
+ocSamples(500)
+@
+
+%\section{Initializing a container for storing processed data}
+%
+%This section will initialize a container for storing processed forms
+%of the data, including the normalized intensities for the A and B
+%alleles and the CRLMM genotype calls and confidence scores.  In
+%addition, the container will store information on the markers
+%(physical position, chromosome, and a SNP indicator), the batch, and
+%the samples (e.g., gender).  To construct this container for Infinium
+%platforms, several steps are required.
+
+We begin by specifying the path containing the raw IDAT files for a
+set of samples from the Infinium 370k platform.
+
+<<datadir>>=
+datadir <- "/thumper/ctsa/snpmicroarray/illumina/IDATS/370k"
+@
+
+For Infinium platforms, an Illumina sample sheet containing
+information for reading the raw IDAT files is required. Please refer
+to the BeadStudio Genotyping guide, Appendix A, for additional
+information.  The following code reads in the samplesheet for the IDAT
+files on our local server.
+
+<<samplesheet>>=
+samplesheet = read.csv(file.path(datadir, "HumanHap370Duo_Sample_Map.csv"), header=TRUE, as.is=TRUE)
+@
+
+For the purposes of this vignette, we indicate that we only wish to
+process a subset of the arrays.  For our dataset, the file extensions
+are `Grn.dat' and `Red.idat'.  We store the complete path to the
+filename without the file extension in the \Robject{arrayNames} and
+check that all of the green and red IDAT files exists.
+
+<<subsetArrays>>=
+samplesheet <- samplesheet[-c(28:46,61:75,78:79), ]
+arrayNames <- file.path(datadir, unique(samplesheet[, "SentrixPosition"]))
+all(file.exists(paste(arrayNames, "_Grn.idat", sep="")))
+all(file.exists(paste(arrayNames, "_Red.idat", sep="")))
+arrayInfo <- list(barcode=NULL, position="SentrixPosition")
+@
+
+All supported platforms have a corresponding annotation package.  The
+appropriate annotation package is specified by the platform identifier
+without the \verb+Crlmm+ postfix.
+
+<<cdfname>>=
+cdfName <- "human370v1c"
+@
+
+Next, we construct a character vector that specifies the batch for
+each of the \Sexpr{length(arrayNames)} arrays.  Here, we have a small
+dataset and process the samples in a single batch. Processing the
+samples as a single batch is generally reasonable if the samples were
+processed at similar times (e.g., within a few weeks).
+
+<<batch>>=
+batch <- rep("1", nrow(samplesheet))
+@
+
+%Finally, we initialize an object of class \Robject{CNSet} using the
+%function \Rfunction{constructInf}.
+%
+%<<container,cache=TRUE>>=
+%cnSet <- constructInf(sampleSheet=samplesheet,
+%		      arrayNames=arrayNames,
+%		      batch=batch,
+%		      arrayInfoColNames=arrayInfo,
+%		      cdfName=cdfName,
+%		      verbose=TRUE,
+%		      saveDate=TRUE)
+%@
+%
+%A concise summary of the object's contents can be viewed with the
+%\Rfunction{print} function.
+%
+%<<cnset>>=
+%print(cnSet)
+%@
+%
+%Note that the above object does not yet contain any processed data
+%(only \verb+NA+'s).  As the elements of the \verb+assayData+ slot are
+%\Robject{ff} objects (not matrices), several \verb+.ff+ files now
+%appear in the \verb+outdir+. The \verb+.ff+ files should not be
+%removed and can be listed using the \R{} function
+%\Rfunction{list.files}.  %For the most part, the \emph{appearance} that
+%the data is stored in memory is preserved.
+%
+%<<listff>>=
+%sapply(assayData(cnSet), function(x) class(x)[1])
+%list.files(outdir, pattern=".ff")[1:5]
+%@
+%
+\section{Preprocessing and genotyping}
+
+The raw intensities from the Infinium IDAT files are read and
+normalized using the function \Rfunction{preprocessInf}.  The function
+\Rfunction{preprocessInf} returns a \Robject{ff} object containing the
+parameters for the mixture model used by the CRLMM genotyping
+algorithm.  Following preprocessing, the \Rfunction{genotypeInf}
+genotypes the samples. The function \Rfunction{genotype.Illumina} is a
+wrapper to the above functions and returns an object of class
+\Rclass{CNSet}.
+
+%<<preprocess,cache=TRUE, results=hide>>=
+%mixtureParams <- preprocessInf(cnSet=cnSet, sampleSheet=samplesheet,
+%			       arrayNames=arrayNames,
+%			       arrayInfoColNames=arrayInfo,
+%			       cdfName=cdfName)
+%@
+%
+%<<showMixtureParams>>=
+%invisible(open(mixtureParams))
+%str(mixtureParams[])
+%invisible(close(mixtureParams))
+%@
+%
+%Note that the normalized intensities for the A and B alleles are no
+%longer \verb+NA+s and can be inspected using the methods \Rfunction{A}
+%and \Rfunction{B}, respectively.
+%
+%<<intensities>>=
+%invisible(open(A(cnSet)))
+%invisible(open(B(cnSet)))
+%as.matrix(A(cnSet)[1:5, 1:5])
+%as.matrix(B(cnSet)[1:5, 1:5])
+%invisible(close(A(cnSet)))
+%invisible(close(B(cnSet)))
+%@
+%
+%\section{Genotyping}
+%
+%CRLMM genotype calls and confidence scores are estimated using the
+%function \Rfunction{genotypeInf}.
+%
+%<<genotype,cache=TRUE>>=
+%updated <- genotypeInf(cnSet, mixtureParams=mixtureParams, cdfName=cdfName)
+%@
+%\vspace{-0.5em}
+%<<>>=
+%updated
+%@
+%
+%\textbf{Wrapper:} As an alternative to calling the functions
+%\Rfunction{constructInf}, \Rfunction{preprocessInf} and
+%\Rfunction{genotypeInf} in sequence, a convenience function called
+%\Rfunction{genotype.Illumina} is a wrapper for the above functions and
+%produces identical results.
+
+<<genotype.Illumina,cache=TRUE,results=hide>>=
+cnSet <- genotype.Illumina(sampleSheet=samplesheet,
+			   arrayNames=arrayNames,
+			   arrayInfoColNames=arrayInfo,
+			   cdfName="human370v1c",
+			   batch=batch)
+@
+
+
+Note, to fully remove the data associated with the \Robject{cnSet2}
+object, one should use the \Rfunction{delete} function in the
+\Rpackage{ff} package followed by the \Rfunction{rm} function.  The
+following code is not evaluated is it would change the results of the
+cached computations in the previous code chunk.
+
+<<delete, eval=FALSE>>=
+lapply(assayData(cnSet), delete)
+lapply(batchStatistics(cnSet), delete)
+delete(cnSet$gender)
+delete(cnSet$SNR)
+delete(cnSet$SKW)
+rm(cnSet)
+@
+
+%\section{Copy number estimation}
+
+\SweaveInput{copynumber}
+
+\section{Session information}
+<<sessionInfo, results=tex>>=
+toLatex(sessionInfo())
+@
+
+\begin{figure}[f]
+  \begin{center}
+  \includegraphics[width=0.6\textwidth]{IlluminaPreprocessCN-snr.pdf}
+  \caption{The signal to noise ratio (SNR) for 180 HapMap samples. For
+    Affymetrix platforms, SNR values below 5 can indicate possible
+    problems with sample quality.  In some circumstances, it may be
+    more helpful to exclude samples with poor DNA quality.}
+\end{center}
+\end{figure}
+
+
+\bibliography{refs}
+\bibliographystyle{plain}
+
+\end{document}

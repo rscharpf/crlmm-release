@@ -1,0 +1,113 @@
+useDynLib("crlmm", .registration=TRUE)
+
+importClassesFrom(Biobase, AssayData, eSet)
+
+##importClassesFrom(methods, ANY, character, formula, integer, list,
+##                  matrix, oldClass)
+##importMethodsFrom(methods, initialize, show)
+import(methods)
+##importFrom(methods, setOldClass)
+##importFrom(methods, as, callNextMethod, is, new, validObject)
+##importFrom(methods, callNextMethod, new, validObject, coerce)
+
+importFrom(RcppEigen, fastLmPure)
+## importClassesFrom(oligoClasses, CNSet, CNSetLM, ff_matrix,
+##                   ff_or_matrix, oligoSnpSet)
+importClassesFrom(oligoClasses, CNSet, oligoSnpSet, ff_or_matrix)
+##setOldClass(ff_or_matrix)
+import(matrixStats)
+
+importMethodsFrom(Biobase, annotatedDataFrameFrom, annotation,
+                  AnnotatedDataFrame, assayData, experimentData, featureData,
+                  "featureData<-", featureNames, "featureNames<-",
+                  pData, "pData<-", phenoData, "phenoData<-",
+                  protocolData, "protocolData<-",
+                  sampleNames, snpCall, "snpCall<-",
+                  snpCallProbability, "snpCallProbability<-",
+                  storageMode, "storageMode<-", varLabels)
+
+importMethodsFrom(BiocGenerics, cbind, colnames, Filter, get,
+                  intersect, lapply, ncol, NCOL, nrow, NROW, order,
+                  paste, pmax, pmin, rbind, rownames, sapply, setdiff,
+                  table, union, unique)
+
+##importMethodsFrom(genefilter, show)
+
+importMethodsFrom(oligoClasses, A, "A<-", B, batch, batchNames,
+                  batchStatistics, "batchStatistics<-", calls,
+                  chromosome, close, confs, flags, isSnp, mean, nu,
+                  open, phi, "sampleNames<-")
+
+importFrom(affyio, read.celfile, read.celfile.header)
+
+importFrom(illuminaio, readIDAT)
+
+importFrom(Biobase, assayDataElement, assayDataElementReplace,
+           assayDataNew, copyEnv)
+
+importFrom(ellipse, ellipse)
+
+##importFrom(genefilter, rowSds)
+
+importFrom(lattice, lpolygon, panel.grid, panel.number, panel.xyplot,
+           xyplot)
+
+##importFrom(methods, as, callNextMethod, is, new, validObject)
+
+importFrom(mvtnorm, rmvnorm)
+
+importFrom(oligoClasses, celfileDate, chromosome2integer, i2p,
+           initializeBigMatrix, initializeBigVector, integerMatrix,
+	   isPackageLoaded,
+           ldPath, ocLapply, ocProbesets, ocSamples,
+	   parStatus,
+           splitIndicesByLength, splitIndicesByNode, AssayDataList)
+
+importFrom(preprocessCore, normalize.quantiles, normalize.quantiles.determine.target,
+           normalize.quantiles.use.target, subColSummarizeMedian)
+
+importFrom(stats, coef, cov, dnorm, kmeans, lm, mad, median, quantile,
+           sd)
+
+importFrom(utils, packageDescription, setTxtProgressBar,
+           txtProgressBar)
+
+## foreach
+import(foreach)
+
+importFrom(VGAM, vglm, multinomial, coefficients)
+
+importFrom(parallel, makeCluster, detectCores, parRapply, stopCluster, clusterEvalQ)
+
+
+##----------------------------------------------------------------------------
+## export
+##----------------------------------------------------------------------------
+exportClasses(PredictionRegion)
+exportMethods(CA, CB,
+	      A, B, corr, nuA, nuB, phiA, phiB,
+	      predictionRegion, posteriorProbability,
+	      tau2, Ns, medians, mads,
+	      xyplot, calculateRBaf, OligoSetList,
+	      BafLrrSetList)
+export(crlmm,
+       crlmmIllumina,
+       crlmmIlluminaV2,
+       constructAffyCNSet,
+       genotype,
+       genotypeAffy,
+       readIdatFiles,
+       readGenCallOutput,
+       snprma,
+       snprma2,
+       cnrmaAffy,
+       snprmaAffy,
+       crlmm2,
+       genotype2, genotypeLD,
+       genotypeAffy,
+       genotype.Illumina,
+       crlmmCopynumber2, crlmmCopynumberLD, crlmmCopynumber)
+export(genotypes, totalCopynumber, rawCopynumber, xyplot)
+export(ABpanel, validCEL, celDates, validCdfNames)
+
+##export(constructOligoSetListFrom, constructBafLrrSetListFrom)

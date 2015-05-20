@@ -1,0 +1,86 @@
+%\VignetteIndexEntry{crlmm Vignette - Genotyping}
+%\VignetteDepends{crlmm, hapmapsnp6, genomewidesnp6Crlmm}
+%\VignetteKeywords{genotype, crlmm, SNP 5, SNP 6}
+%\VignettePackage{crlmm}
+\documentclass{article}
+
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+\newcommand{\Rcode}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textsf{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+\newcommand{\oligo}{\Rpackage{oligo }}
+
+\begin{document}
+\title{Genotyping with the \Rpackage{crlmm} Package}
+\date{March, 2009}
+\author{Benilton Carvalho}
+\maketitle
+
+<<setup, echo=FALSE, results=hide>>=
+options(width=60)
+options(continue=" ")
+options(prompt="R> ")
+@ 
+
+\section{Quick intro to \Rpackage{crlmm}}
+
+The \Rpackage{crlmm} package contains a new implementation for the
+CRLMM algorithm (Carvalho et. al. 2007). Our focus is on efficient
+genotyping of SNP 5.0 and 6.0 Affymetrix arrays, although extensions
+of the method are under development for similar platforms.
+
+This implementation, compared to the previous one (in
+\Rpackage{oligo}), offers improved confidence scores, quality scores
+for SNP's and batches, higher accuracy on different datasets and
+better performance.
+
+Additionally, this package does not use the pd.genomewidesnp packages
+created via pdInfoBuilder for \Rpackage{oligo}. Instead, it uses
+different annotation packages (\Rpackage{genomewidesnp.5} and
+\Rpackage{genomewidesnp.6}), which use simple R objects to store only
+the information needed for genotyping. This allowed us to improve the
+speed of the method, as SQL queries are no longer performed here.
+
+It is also our priority to make the package simple to use. Below we
+demonstrate how to get genotype calls with the 'new' CRLMM. We use 3
+samples on SNP 5.0 made available via the \Rpackage{hapmapsnp5}
+package.
+
+<<crlmm>>=
+require(oligoClasses)
+library(crlmm)
+library(hapmapsnp6)
+path <- system.file("celFiles", package="hapmapsnp6")
+celFiles <- list.celfiles(path, full.names=TRUE)
+system.time(crlmmResult <- crlmm(celFiles, verbose=FALSE))
+@ 
+
+The \Robject{crlmmResult} is a \Rclass{SnpSet} (see Biobase) object.
+\begin{itemize}
+\item \Robject{calls}: genotype calls (1 - AA; 2 - AB; 3 - BB);
+\item \Robject{confs}: confidence scores, which can be translated to probabilities by using:
+  \[ 1-2^-(\mbox{confs}/1000), \] although we prefer this
+  representation as it saves a significant amount of memory;
+\item \Robject{SNPQC}: SNP quality score;
+%%\item \Robject{batchQC}: Batch quality score;
+\item \Robject{SNR}: Signal-to-noise ratio.
+\end{itemize}
+
+<<out>>=
+calls(crlmmResult)[1:10,]
+confs(crlmmResult)[1:10,]
+crlmmResult[["SNR"]]
+@ 
+
+\section{Details}
+
+This document was written using:
+
+<<>>=
+sessionInfo()
+@ 
+
+
+\end{document}

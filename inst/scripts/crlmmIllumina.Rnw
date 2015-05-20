@@ -1,0 +1,169 @@
+%\VignetteIndexEntry{crlmm Vignette - Illumina 370k chip}
+%\VignetteKeywords{genotype, crlmm, Illumina}
+%\VignettePackage{crlmm}
+
+\documentclass[12pt]{article}
+
+\usepackage{amsmath,pstricks}
+\usepackage[authoryear,round]{natbib}
+\usepackage{hyperref}
+\usepackage{Sweave}
+
+\textwidth=6.2in
+\textheight=8.5in
+%\parskip=.3cm
+\oddsidemargin=.1in
+\evensidemargin=.1in
+\headheight=-.3in
+
+\newcommand{\scscst}{\scriptscriptstyle}
+\newcommand{\scst}{\scriptstyle}
+
+
+\newcommand{\Rfunction}[1]{{\texttt{#1}}}
+\newcommand{\Robject}[1]{{\texttt{#1}}}
+\newcommand{\Rpackage}[1]{{\textit{#1}}}
+\newcommand{\Rmethod}[1]{{\texttt{#1}}}
+\newcommand{\Rfunarg}[1]{{\texttt{#1}}}
+\newcommand{\Rclass}[1]{{\textit{#1}}}
+
+\textwidth=6.2in
+
+\bibliographystyle{plainnat}
+
+\begin{document}
+%\setkeys{Gin}{width=0.55\textwidth}
+
+\title{Using \Rpackage{crlmm} to genotype data from Illumina's Infinium BeadChips}
+\author{Matt Ritchie}
+\maketitle
+
+\section{Getting started}
+
+In this user guide we read in and genotype data from 40 HapMap samples
+which have been analyzed using Illumina's 370k Duo BeadChips.
+This data is available in the \Rpackage{hapmap370k} package.
+Additional chip-specific model parameters and basic SNP annotation
+information used by CRLMM is stored in the \Rpackage{human370v1cCrlmm} package.
+The required packages can be installed in the usual way using the \Rfunction{biocLite} function.
+
+<<echo=TRUE, results=hide, eval=FALSE>>=
+source("http://www.bioconductor.org/biocLite.R")
+biocLite(c("crlmm", "hapmap370k", "human370v1cCrlmm"))
+@
+
+\section{Reading in data}
+The function \Rfunction{readIdatFiles} extracts the Red and Green intensities
+from the binary {\tt idat} files output by Illumina's scanning device.
+The file {\tt samples370k.csv} contains information about each sample.
+
+<<echo=FALSE, results=hide, eval=TRUE>>=
+options(width=70)
+@
+
+<<read, results=hide, eval=TRUE>>=
+library(Biobase)
+library(crlmm)
+library(hapmap370k)
+
+data.dir = system.file("idatFiles", package="hapmap370k")
+
+# Read in sample annotation info
+samples = read.csv(file.path(data.dir, "samples370k.csv"), as.is=TRUE)
+samples[1:5,]
+@
+
+<<read2, results=hide, cache=TRUE>>=
+# Read in .idats using sampleSheet information
+RG = readIdatFiles(samples, path=data.dir,
+arrayInfoColNames=list(barcode=NULL,position="SentrixPosition"),saveDate=TRUE)
+@
+
+Reading in this data takes approximately 100 seconds and peak memory usage
+was 0.8 GB of RAM on our linux system.
+If memory is limiting, load the \Rpackage{ff} package and run the same command.
+When this package is available, the objects are stored using disk rather then RAM.
+The \Robject{RG} object is an \Rclass{NChannelSet} which stores the
+Red and Green intensities, the number of beads and standard errors for
+each bead-type.
+The scanning date of each array is stored in \Robject{protocolData}.
+
+<<explore>>=
+class(RG)
+dim(RG)
+slotNames(RG)
+channelNames(RG)
+exprs(channel(RG, "R"))[1:5,1:5]
+exprs(channel(RG, "G"))[1:5,1:5]
+pd = pData(RG)
+pd[1:5,]
+
+scandatetime = strptime(protocolData(RG)[["ScanDate"]], "%m/%d/%Y %H:%M:%S %p")
+datescanned = substr(scandatetime, 1, 10)
+scanbatch =  factor(datescanned)
+levels(scanbatch) = 1:16
+scanbatch = as.numeric(scanbatch)
+@
+
+If GenCall output is available instead of idat files, the function \Rfunction{readGenCallOutput} can be
+used to read in the data.
+This function assumes the GenCall output is formatted to have samples listed one below the other,
+and that the columns 'X Raw' and 'Y Raw' are available in the file.
+The resulting \Robject{NChannelSet} from this function can be used as input to \Rfunction{crlmmIllumina} via the \Robject{XY} argument (instead of the usual \Rfunction{RG} argument used when the data has been read in from idat files).
+
+Plots of the summarised data can be easily generated to check for arrays with poor signal.
+
+<<boxplots, fig=TRUE, width=8, height=8>>=
+par(mfrow=c(2,1), mai=c(0.4,0.4,0.4,0.1), oma=c(1,1,0,0))
+boxplot(log2(exprs(channel(RG, "R"))), xlab="Array", ylab="", names=1:40,
+main="Red channel",outline=FALSE,las=2)
+boxplot(log2(exprs(channel(RG, "G"))), xlab="Array", ylab="", names=1:40,
+main="Green channel",outline=FALSE,las=2)
+mtext(expression(log[2](intensity)), side=2, outer=TRUE)
+mtext("Array", side=1, outer=TRUE)
+@
+
+\section{Genotyping}
+
+Next we use the function \Rfunction{crlmmIllumina} which performs preprocessing followed by genotyping using the CRLMM algorithm.
+
+<<genotype, results=hide, cache=TRUE>>=
+crlmmResult = crlmmIllumina(RG=RG, cdfName="human370v1c", returnParams=TRUE)
+@
+
+This analysis took 3 minutes to complete and peak memory usage was 1.9 GB on our system.
+The output stored in \Robject{crlmmResult} is a \Rclass{SnpSet} object.
+<<explore2>>=
+class(crlmmResult)
+dim(crlmmResult)
+slotNames(crlmmResult)
+calls(crlmmResult)[1:10, 1:5]
+@
+
+Plotting the {\it SNR} reveals no obvious batch effects in this data set (different symbols are used for
+arrays scanned on different days).
+
+<<snr,  fig=TRUE, width=8, height=6>>=
+plot(crlmmResult[["SNR"]], pch=scanbatch, xlab="Array", ylab="SNR",
+     main="Signal-to-noise ratio per array",las=2)
+@
+
+An all-in-one function named \Rfunction{crlmmIlluminaV2} that combines
+reading of idat files with genotyping is also available.
+
+<<readandgenotypeinone, results=hide, cache=TRUE>>=
+crlmmResult2 <- crlmmIlluminaV2(samples, path=data.dir,
+				arrayInfoColNames=list(barcode=NULL,position="SentrixPosition"),
+				saveDate=TRUE, cdfName="human370v1c", returnParams=TRUE)
+@
+
+\section{System information}
+
+This analysis was carried out on a linux machine with 32GB of RAM
+using the following packages:
+
+<<session>>=
+sessionInfo()
+@
+
+\end{document}

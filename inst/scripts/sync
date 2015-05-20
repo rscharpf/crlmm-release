@@ -1,0 +1,5 @@
+rsync -avuzb --exclude '*~' --exclude '.git*' -e ssh ~/madman/Rpacks/git/crlmm/ enigma2.jhsph.edu:~/madman/Rpacks/git/crlmm
+rsync -avuzb --exclude '*~' --exclude '.git*' -e ssh enigma2.jhsph.edu:~/madman/Rpacks/release/crlmm/inst/scripts/*opynumber.pdf ~/madman/Rpacks/git/crlmm/inst/scripts/
+
+
+

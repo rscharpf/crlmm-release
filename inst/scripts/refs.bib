@@ -1,0 +1,100 @@
+@ARTICLE{Scharpf2011,
+  author = {Robert B Scharpf and Ingo Ruczinski and Benilton Carvalho and Betty
+	Doan and Aravinda Chakravarti and Rafael A Irizarry},
+  title = {A multilevel model to address batch effects in copy number estimation
+	using SNP arrays.},
+  journal = {Biostatistics},
+  year = {2011},
+  volume = {12},
+  pages = {33--50},
+  number = {1},
+  month = {Jan},
+  abstract = {Submicroscopic changes in chromosomal DNA copy number dosage are common
+	and have been implicated in many heritable diseases and cancers.
+	Recent high-throughput technologies have a resolution that permits
+	the detection of segmental changes in DNA copy number that span thousands
+	of base pairs in the genome. Genomewide association studies (GWAS)
+	may simultaneously screen for copy number phenotype and single nucleotide
+	polymorphism (SNP) phenotype associations as part of the analytic
+	strategy. However, genomewide array analyses are particularly susceptible
+	to batch effects as the logistics of preparing DNA and processing
+	thousands of arrays often involves multiple laboratories and technicians,
+	or changes over calendar time to the reagents and laboratory equipment.
+	Failure to adjust for batch effects can lead to incorrect inference
+	and requires inefficient post hoc quality control procedures to exclude
+	regions that are associated with batch. Our work extends previous
+	model-based approaches for copy number estimation by explicitly modeling
+	batch and using shrinkage to improve locus-specific estimates of
+	copy number uncertainty. Key features of this approach include the
+	use of biallelic genotype calls from experimental data to estimate
+	batch-specific and locus-specific parameters of background and signal
+	without the requirement of training data. We illustrate these ideas
+	using a study of bipolar disease and a study of chromosome 21 trisomy.
+	The former has batch effects that dominate much of the observed variation
+	in the quantile-normalized intensities, while the latter illustrates
+	the robustness of our approach to a data set in which approximately
+	27\% of the samples have altered copy number. Locus-specific estimates
+	of copy number can be plotted on the copy number scale to investigate
+	mosaicism and guide the choice of appropriate downstream approaches
+	for smoothing the copy number as a function of physical position.
+	The software is open source and implemented in the R package crlmm
+	at Bioconductor (http:www.bioconductor.org).},
+  doi = {10.1093/biostatistics/kxq043},
+  institution = {Department of Oncology, Johns Hopkins University School of Medicine,
+	Baltimore, MD 21205, USA. rscharpf@jhsph.edu},
+  language = {eng},
+  medline-pst = {ppublish},
+  owner = {rscharpf},
+  pii = {kxq043},
+  pmcid = {PMC3006124},
+  pmid = {20625178},
+  timestamp = {2011.02.26},
+  url = {http://dx.doi.org/10.1093/biostatistics/kxq043}
+}
+
+
+@ARTICLE{Carvalho2007a,
+  author = {Benilton Carvalho and Henrik Bengtsson and Terence P Speed and Rafael
+	A Irizarry},
+  title = {Exploration, normalization, and genotype calls of high-density oligonucleotide
+	SNP array data.},
+  journal = {Biostatistics},
+  year = {2007},
+  volume = {8},
+  pages = {485--499},
+  number = {2},
+  month = {Apr},
+  abstract = {In most microarray technologies, a number of critical steps are required
+	to convert raw intensity measurements into the data relied upon by
+	data analysts, biologists, and clinicians. These data manipulations,
+	referred to as preprocessing, can influence the quality of the ultimate
+	measurements. In the last few years, the high-throughput measurement
+	of gene expression is the most popular application of microarray
+	technology. For this application, various groups have demonstrated
+	that the use of modern statistical methodology can substantially
+	improve accuracy and precision of the gene expression measurements,
+	relative to ad hoc procedures introduced by designers and manufacturers
+	of the technology. Currently, other applications of microarrays are
+	becoming more and more popular. In this paper, we describe a preprocessing
+	methodology for a technology designed for the identification of DNA
+	sequence variants in specific genes or regions of the human genome
+	that are associated with phenotypes of interest such as disease.
+	In particular, we describe a methodology useful for preprocessing
+	Affymetrix single-nucleotide polymorphism chips and obtaining genotype
+	calls with the preprocessed data. We demonstrate how our procedure
+	improves existing approaches using data from 3 relatively large studies
+	including the one in which large numbers of independent calls are
+	available. The proposed methods are implemented in the package oligo
+	available from Bioconductor.},
+  doi = {10.1093/biostatistics/kxl042},
+  institution = {Department of Biostatistics, Johns Hopkins University, Baltimore,
+	MD 21205, USA.},
+  keywords = {Algorithms; Alleles; Data Interpretation, Statistical; Genotype; Humans;
+	Oligonucleotide Array Sequence Analysis; Oligonucleotides; Polymorphism,
+	Single Nucleotide},
+  owner = {rscharpf},
+  pii = {kxl042},
+  pmid = {17189563},
+  timestamp = {2008.08.07},
+  url = {http://dx.doi.org/10.1093/biostatistics/kxl042}
+}

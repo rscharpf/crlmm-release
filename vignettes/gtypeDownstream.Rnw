@@ -1,0 +1,10 @@
+%\VignetteIndexEntry{crlmm Vignette - Downstream Analysis}
+%\VignetteKeywords{genotype, crlmm, SNP 5, SNP 6}
+%\VignettePackage{crlmm}
+
+%%% The real .Rnw is under inst/scripts.
+%%% It cannot be added here because it depends on external
+%%% data not yet available as a BioC package
+\documentclass[12pt]{article}
+\begin{document}
+\end{document}

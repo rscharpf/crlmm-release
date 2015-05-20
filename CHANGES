@@ -1,0 +1,591 @@
+2009-03-01  Benilton Carvalho <bcarvalh@jhsph.edu> - committed version 1.0.40
+
+* Added TODO file
+
+* Added CHANGES file
+
+* Reduced number of files in R/ by combining functions for a given methodology (crlmm / cnrma)
+
+* Files with suffix XYZ-functions.R should have *functions* for methodology XYZ
+
+* Files with suffix XYZ-methods.R should have *methods* for methodology XYZ
+
+* Imported assayDataNew from Biobase
+
+* Added inst/scripts to store vignettes that can't be built by BioC
+due to the fact that they depend on external data not available as
+BioC data packages
+
+* Added crlmmSet class and calls/confs methods
+
+2009-03-08 Benilton Carvalho <bcarvalh@jhsph.edu> - committed version 1.0.55
+
+* Added biocViews
+
+* Removed empty \details{} in cnrma.Rd
+
+2009-03-14 Benilton Carvalho <bcarvalh@jhsph.edu> - committed version 1.0.56
+
+* Loaded data in cnrma-functions.R to an environment and extracted from there
+  so we can get rid of the NOTES complaining about 'no visible bindings'.
+
+2009-03-18 Rob Scharpf <rscharpf@jhsph.edu> - committed version 1.0.57
+* Added steps object to instantiateObjects to speed up debugging
+* Reformulated the regression for chromosome X
+   -  estimate cross-hybridization using chromosome X
+* Take into account pseudo-autosomal regions on chr X for copy number estimation
+* Replaced get() and assign() with '<-' operations to improve readability
+* Function to compute posterior means of copy number estimates
+
+2009-03-19 Rob Scharpf - committed version 1.0.59
+* Requires genomewidesnp6Crlmm version 1.0.1 or greater
+
+2009-03-25 Rob Scharpf - committed version 1.0.60
+* simplified some of the preliminary steps for the computeCopynumber function
+* crlmm output subset within the body of the function
+* modified vignette -- store results in an oligoSnpSet object (for now)
+* added function to extract the date from the celfile headers (celDates)
+
+2009-03-25 Rob Scharpf - committed version 1.0.61
+* update to copynumber vignette
+
+2009-03-27 B Carvalho - committed version 1.0.62
+
+* crlmm() returns a SnpSet object (from Biobase)
+
+* fixed standard vignette to accommodate this change
+
+* redefined calls/confs to accommodate this change
+
+* fixed documentation to acommodate this change
+
+2009-03-28 B Carvalho - committed version 1.0.64
+* modified crlmm and cnrma to look for data at extdata/
+
+2009-03-29 Rob Scharpf - committed version 1.0.65
+
+* update to copynumber vignette
+
+* updated computeCopynumber.Rd to accommodate SnpSet objects and
+  changes to genomewidesnp6Crlmm
+
+* cnrma function requires the cdfName
+
+* update man files for cnrma and computeCopynumber
+
+2009-03-30 Matt Ritchie - committed version 1.0.66
+
+* added functions to read in idat files, pre-process and genotype 
+data from Illumina SNP arrays (functions named readIdatFiles() 
+and crlmmIllumina() in crlmm-illumina.R)
+* added man pages for these functions
+
+2009-04-01 Matt Ritchie - committed version 1.0.67
+
+* added import statement for normalize.quantiles
+
+2009-04-01 R.Scharpf - committed version 1.0.69
+
+* added a few items to the crlmm TODOs
+
+2009-04-03 B Carvalho - committed version 1.0.70
+
+* Updated TODO and DESCRIPTION
+
+2009-04-04 R.Scharpf - committed version 1.0.71
+
+*  bug in oneBatch function for chromosome X.  added additional checks for missing values
+
+2009-04-06 Matt Ritchie - committed version 1.0.72
+
+* new argument in readIdatFiles() 'saveDate', which saves the date and time each array
+is decoded and scanned
+* results from crlmmIllumina() now saved as 'SnpSet' just like crlmm()
+* reorganised Illumina preprocessing functions slightly to
+  - allow copy number intensities to be saved along with snp intensities
+  - make use of new indexing objects in the chip specific crlmm data packages
+  - fix a few bugs
+
+2009-04-07 Rob Scharpf - committed version 1.0.73
+
+* added cdfName as argument to computeCopynumber
+
+2009-04-07 B Carvalho - committed version 1.0.74
+
+* Added documentation for snprma.
+
+* Removed 'svn:executable' property of readIdatFiles.Rd
+
+2009-04-07 Rob Scharpf - committed version 1.0.75
+
+* modifications to chromosome X copy number estimation
+
+2009-04-07 Rob Scharpf - committed version 1.0.76
+
+* fixed bug in cnrma
+
+2009-04-07 Rob Scharpf - committed version 1.0.77
+
+* cnrma accepts other cdfNames
+
+* fixed bug in cnrma
+
+2009-04-07 Rob Scharpf - committed version 1.0.78
+
+* added conf as argument to instantiateObjects
+
+2009-04-08 Matt Ritchie - committed version 1.0.79
+
+* fixed bug in readIDAT and readIdatFiles from reading in RunInfo header information
+
+2009-04-07 B Carvalho - committed version 1.0.80 (advantages of being a lot of hours behind)
+
+* Fixed downstream vignette to account for the SnpSet object being returned by crlmm
+
+* Fixed some minor status messages
+
+2009-04-09 R Scharpf - committed version 1.0.81
+
+* added a skeleton of a copy number vignette for the illumina platform (illumina_copynumber.Rnw) to inst/scripts
+
+2009-04-27 R Scharpf - committed version 1.3.1
+
+* Fixed bug in nonpolymorphic() function
+
+2009-05-07 Matt Ritchie - committed version 1.3.2
+
+* Updated usage of sampleNames() on NChannelSet objects in Illumina functions to maintain consistency with Biobase
+
+2009-06-08 B Carvalho - committed version 1.3.3
+
+* Added batchQC to phenoData
+
+2009-06-08 R Scharpf - committed version 1.3.4
+
+* fixed bug in the biasAdjNP function.  updated biasAdj function
+
+2009-06-20 R Scharpf - committed version 1.3.5
+
+* created CrlmmSetList, ABset, and CopyNumberSet classes.  
+  - added a few methods to support these classes
+
+* crlmmWrapper does normalization / genotyping and optionally splits
+  the results by chromosome
+
+* several changes to the copynumber vignette
+
+2009-06-29 R Scharpf - committed version 1.3.6
+
+* updated computeCopynumber
+* export A, B methods for ABset class
+
+2009-07-01 M Ritchie - committed version 1.3.7
+
+* made memory savings to reading and normalization of Illumina data
+* Now use 'protocolData' slot to save scan dates instead of saving them in phenoData slot
+* added vignette for genoytping illumina data (crlmmIllumina.pdf in inst/doc and crlmmIllumina.Rnw in inst/scripts)
+* Changed stop() to warning() when idats are of different type in readIdatFiles()
+
+
+2009-07-06 R Scharpf - committed version 1.3.8
+
+* initial development of copy number methods for illumina platform
+
+* added Rd files for previously defined classes/methods
+
+* some improvements to chromosome X copy number estimation
+
+2009-07-06 R Scharpf - committed version 1.3.9
+
+* fixed bugs in biasAdj and biasAdjNP
+
+2009-07-09 R Scharpf - committed version 1.3.10
+
+* changed defaults for crlmmWrapper: save.it=FALSE
+
+* splitByChr method looks for 'chr' or 'chromosome' in colnames 
+
+* sample-specific standard deviations in the .getEmission function
+
+* add check for duplicated positions in creating locusset object
+
+* computeCopynumber returns an object of class CrlmmSetList
+  
+  - dimnames for the elements in the list are the same
+
+  - elements in the list are ordered by chromosome and physical
+    position
+
+  - copy number parameters in the featureData of the CopyNumberSet
+    element are thresholded
+
+2009-07-14 R Scharpf - committed version 1.3.11
+
+* computeCopynumber requires 10 or more samples
+
+
+2009-07-16 R Scharpf - committed version 1.3.12
+
+* protocolData replacement method for CrlmmSetList objects
+
+* added .man page for .computeCopynumber 
+
+* Suggests VanillaICE (>= 1.7.8)  -- needed to run the copynumber.Rnw
+  vignette
+
+2009-07-16 R Scharpf - committed version 1.3.13
+
+* fixed bug 'DF.PRIOR not found'
+
+2009-07-16 R Scharpf - committed version 1.3.14
+
+* fixed malformed DESCRIPTION file
+
+2009-07-31 B Carvalho - committed version 1.3.16
+
+* Removed several warnings at the C-level
+
+* Fixed several incorrect links in the documentation
+
+* Removed multiple notes "no visible binding for global variable"
+  by replacing, in crlmmIlluminaWrapper and crlmmWrapper,
+  a) samplesheet5 by get("samplesheet5")
+  b) path by get("path")
+  c) res by get("res")
+
+2009-08-04 R. Scharpf - committed version 1.3.17
+
+* changed readIdatFiles function to check whether arrayNames is NULL
+
+2009-08-13 R. Scharpf - committed version 1.3.18
+
+* move Biobase to Depends
+* removed GGdata from suggests (problem with loading illuminaHumanv1.db)
+* overhaul of vignette
+* added update() method for copy number
+* added documentation and error checks for crlmmWrapper
+
+2009-08-14 R. Scharpf - committed version 1.3.19
+
+* changes to crlmmWrapper (trying to make this handle the illumina platform as well...still needs testing)
+  - removed crlmmIlluminaWrapper.Rd, and commented crlmmIlluminaWrapper function
+* labeled figures / displayed output of code chunks in the copy number vignette
+* added bibliography for copy number vignette.  Added file inst/doc/refs.bib
+* added boxplot method 
+
+2009-10-03 R. Scharpf - committed version 1.3.21
+
+* modified crlmmWrapper function
+* modified illumina copy number vignette (still needs debugging)
+* changed title of copy number vignette
+* added reference to the crlmm paper
+* changed copyNumber() method so that CA + NA = NA, CB + NA = NA (previously had CA+NA=CA, but this can result in a lot of zeros, depending on the genotype)
+* new method: addFeatureAnnotation
+* support for snp5.0
+
+2009-10-04 R. Scharpf - committed version 1.3.22
+
+* changed default path argument for readIdatFiles to empty quotes
+* fixed bug in update method for character strings
+* updated addFeatureAnnotation so that CHR arg not required
+* fixed bug in nonpolymorphic function -- function checks whether any regions are pseudoautosomal 
+* fixed bug in list2locusset function (no longer assigns genomewidesnp6 as the default annotation)
+
+2009-10-16 R. Scharpf - committed version 1.3.23
+
+ * 100*CA, 100*CB are stored in the CA, CB assayDataElements.  The
+   replacement method automatically converts a matrix on the copy
+   number scale to an integer representation by scaling by a factor of
+   100. The accessor methods for CA, CB automatically divide by 100 to
+   return estimates back on the original copy number scale.
+
+ * more debugging of readIdatFiles and illumina copy number vignette.
+
+ * updated illumina_copynumber vignette
+
+2009-10-25 M Ritchie - committed version 1.3.24
+
+ * fixed bug in readIdatFiles()
+
+ * updated crlmmIllumina.Rnw and crlmmIllumina.pdf
+
+2009-11-14 B Carvalho - committed version 1.5.2
+
+ * code cleanup - removed unneeded C code
+
+2009-11-15 R. Scharpf - committed version 1.5.3
+
+ * numerous changes to the copy number estimation
+ - ABset and CrlmmSetList classes are gone. Using SnpCallSetPlus and CrlmmSet
+ - Added class SegmentSet that extends CrlmmSet directly.
+
+2009-11-15 B Carvalho - committed version 1.5.4
+
+ * removed references to old C code
+ * added the missing files to the Collate field
+ * fixed classes imported from oligoClasses in NAMESPACE
+ * imported 'calls<-' from oligoClasses
+
+2009-11-19 R. Scharpf - committed version 1.5.5
+
+ * removed a few of the classes (CrlmmSet, CrlmmSetFF, SnpCallSetPlusFF,...)
+ * added CNSet class
+ * segmentData slot in CNSet class is an extension of RangedData (defined in IRanges package)
+
+2009-11-19 R. Scharpf - committed version 1.5.6 
+
+ * fixed bugs in initialization of SnpCallSetPlus
+
+2009-11-19 R. Scharpf - committed version 1.5.7
+
+ * fixed bugs in addFeatureAnnotation.SnpCallSetPlus
+
+2009-12-01 M. Ritchie - committed version 1.5.8
+
+ * bug fixed in stripNormalize() [X+16,Y+16 which avoids log(0) = -Inf values, 
+      removed inadvertantly in version 1.3.7, put back]
+ * removed header checking from readIdatFiles() (seems to fail often).  
+      Instead check that the number of SNPs agrees (to within +/- 10K SNPs)
+
+2009-12-04 B. Carvalho - committed version 1.5.11
+
+ * moved IRanges and oligoClasses to Depends (DESCRIPTION)
+
+2009-12-23 R. Scharpf - committed version 1.5.17
+
+** updated first half of inst/scripts/copynumber.Rnw, as well as a few of the help files
+
+2009-12-23 R. Scharpf - committed version 1.5.18
+
+** removed generics for addFeatureAnnotation and GT<-
+
+2009-12-24 M. Ritchie - committed version 1.5.19
+
+ * Added 'humanomni1quadv1b" to chip types allowed in RGtoXY()
+
+2010-01-20 R. Scharpf - committed version 1.5.21
+ * Added CopyNumberVariants to DESCRIPTION
+
+2010-01-20 R. Scharpf - committed version 1.5.22
+ * restored inst/doc/crlmmDownstream.Rnw
+
+2010-02-04 M. Ritchie - committed version 1.5.23
+ * crlmmIllumina now exported in NAMESPACE (removed at some point)
+ * new function crlmmIlluminaV2() which reads in .idats and genotypes 
+in the one function to reduce memory usage (not exported as yet)
+ * readIdatFiles() modified to no longer store number of beads and beads SE
+to save memory.  Instead, 'zero', which indicates which SNPs have zero beads 
+is stored in the assayData slot.
+ * now store 'zero' with copy number AB intensities in preprocessInfinium2()
+ * deleted man pages crlmm.Rd and readIdatFiles.Rd added back
+
+2010-02-05 M. Ritchie - committed version 1.5.24
+ * preprocessed allele A and B intensities from copy number and regular SNPs are now saved separately by crlmmIllumina().  The 'intensityFile' argument has been replaced by 'snpFile' and 'cnFile'.
+ * updated the following man pages to reflect the above changes and added in current references:  crlmmIllumina.Rd, crlmm.Rd and readIdatFiles.Rd
+
+2010-02-07 B. Carvalho - committed version 1.5.25
+ * Updated requirement of affyio to support Win64
+
+2010-02-20 R. Scharpf - committed version 1.5.26
+
+** begin adding support for ff
+
+** added use.poe option for nonpolymorphic loci
+
+** crlmm does not return anything, but saves the following objects:
+      - genotypes.rda
+      - confs.rda
+      - snp_rmaResult.rda  (gns, sns, SNR, SKW, mixtureParams, cdfName)
+      - A.rda
+      - B.rda
+      - cn_rmaResult.rda (SKW)
+
+2010-02-21 R. Scharpf - committed version 1.5.27
+ 
+** additional support for ff in crlmm and computeCopynumber functions
+
+2010-03-02 M. Ritchie - committed version 1.5.28
+ * Added message to readIDAT() warning that older style IDAT files can not be read in.
+Such files arise when scanner settings contain the line <GenerateVersionTwoIdatFiles>false</GenerateVersionTwoIdatFiles>
+If this is modified to <GenerateVersionTwoIdatFiles>true</GenerateVersionTwoIdatFiles>, 
+then readIDAT() should work. Thanks to Pierre Cherel who reported this error.
+ * Removed AllClasses.R from Collate field in DESCRIPTION file (causes an error in build)
+
+2010-03-05 M. Ritchie - committed version 1.5.29
+ * crlmmIlluminaV2() now exported.  Added man page crlmmIlluminaV2.Rd
+
+2010-03-07 R. Scharpf committed version 1.5.30
+
+       - one can use ff in conjunction with affy platforms 5.0 and 6.0
+       - preprocessing / genotyping is basically the same set of
+        commands with either illumina/affy platforms (though
+        illumina-users may have to play with some of the options for
+        reading idat files
+       - if ff package is loaded, the assayData elements are ff objects
+
+       - the classes all inherit from 'CrlmmContainer' that contains
+         an additional slot 'options' and 'genomeAnnotation'.  options
+         is a list with the default arguments to snprma, crlmm, etc,
+         as well as a few global settings such as 'verbose' and
+         'seed'.  I added the genomeAnnotation slot simply because I
+         want to be able to use ff-objects for the feature-level data.
+         Maybe with setClassUnion we could avoid adding the
+         genomeAnnotation slot (and use featureData instead), but I
+         didn't have much success with this.
+
+	 - the batchSize argument will run the genotyping (crlmmGT) in
+           batches to reduce the RAM.  The default is batches of size
+           1000.
+
+	 - The crlmm.Rd file contains an example with / without ff
+             for Affymetrix data.
+
+2010-03-08 M. Ritchie committed version 1.5.31
+ * removed a few unnecessary lines of code from crlmm-illumina.R (zero not needed as argument for preprocessInfinium2() and storageMode should not be "lockedEnvironment" in RGtoXY()) 
+ * added "humanomni1quadv1b" to validCdfName() in utils.R
+
+2010-03-08 R.Scharpf committed version 1.5.32
+
+**	   Rolled back to version 1.5.24 
+	   
+2010-03-08 R.Scharpf committed version 1.5.33
+
+**	  Added annotatedDataFrameFrom methods for ff_matrix and ffdf (in utils)
+
+2010-03-10 R.Scharpf committed version 1.5.34
+
+**	  updated DESCRIPTION to import ff
+**        added AllClasses.R with defitions for ff-derived classes
+**        temporarily exporting everything in the NAMESPACE
+
+2010-03-11 R.Scharpf committed version 1.5.35
+
+**        added genotype() in cnrma-functions -- for preprocessing and
+          genotyping affy
+
+2010-03-14 R.Scharpf committed version 1.5.36
+
+**   added crlmmIlluminaRS to cnrma-functions.R (testing)
+
+2010-03-18 R.Scharpf committed version 1.5.37
+
+**   fixed bugs in genotype() and crlmmIlluminaRS.
+     (currently saving intermediate steps in crlmmIlluminaRS)
+     removed cnOptions function and changed arguments to crlmmCopynumber
+
+2010-03-18 R.Scharpf committed version 1.5.38
+
+** a few updates to initializeBigMatrix
+** show, [ defined for CNSetLM
+
+2010-03-25 R.Scharpf committed version 1.5.41
+
+** import snpCall, snpCallProbability, snpCall<-, snpCallProbability<-
+   from Biobase
+** updates to genotype, crlmmIlluminaRS, crlmmCopynumber
+** class union of ff_matrix, matrix, and ffdf
+
+2010-03-18 B Carvalho committed version 1.5.42
+
+** added parallel/large dataset support to snprma/crlmm
+** merged changes on .41 with my local changes
+
+2010-04-01 R.Scharpf committed version 1.5.44
+
+** added functions genotype2, cnrma2 for preprocessing and genotyping
+   with crlmm2
+** added crlmmCopynumber2 for parallel support with copy number
+   est. (needs more checking)
+
+2010-04-07 M. Ritchie committed version 1.5.45
+** modified the storage of RG, XY and genotype call data to use the ff package and initializeBigMatrix() function from oligoClasses package.  The genotype call data now includes non-polymorphic probes (which have NA calls).  Functions which use ff storage are named readIdatFiles2(), RGtoXY2(), preprocessInfinium2v2(), crlmmIllumina2() and crlmmIlluminaV2().
+
+2010-04-08 B Carvalho committed version 1.5.46
+** moved NEWS to inst/
+
+2010-04-09 M. Ritchie committed version 1.5.47
+** fixed bugs in code and removed copy number probes from output 
+(now saved separately as before - SnpSuperSet not used)
+** crlmmIllumina2() and crlmmIlluminaV2() now use the crlmmGT2() 
+function (which expects ff objects and supports parallel processing)
+** updated crlmmIllumina.pdf vignette
+
+2010-04-11 R. Scharpf committed version 1.5.48
+** added a few .Rd files
+
+2010-04-16 B Carvalho committed version 1.5.49
+** cosmetics - looking for cause of memory spike
+
+2010-04-24 B Carvalho committed version 1.7.1
+** fixed bug in gender prediction that cause a spike in memory usage
+
+2010-05-25 R. Scharpf committed version 1.7.2
+** added example dataset
+** fixed vignette: inst/scripts/copynumber.Rnw
+
+2010-05-25 R. Scharpf committed version 1.7.3
+** put back in the following check in readIDAT (from r 45050):
+  if(versionNumber<3)
+    stop("Older style IDAT files not supported:  consider updating your scanner settings")
+
+2010-05-25 R. Scharpf committed version 1.7.4
+** wrapped readIDAT in a tryCatch()	   
+
+2010-05-26 R. Scharpf committed version 1.7.5
+** minor edits to inst/scripts/copynumber.Rnw
+
+2010-07-25 M. Ritchie committed version 1.7.6
+** fixed bug introduced in 1.7.4 by addition of tryCatch() into readIdatFiles().  Thanks to Nolwenn Le Meur for pointing this out.
+
+2010--7-28 M. Ritchie committed version 1.7.7
+** added omni express 12 as one of the chip options for Illumina.  Also added a check for copy number probes (this chip doesn't have any).
+
+2010-07-30 R. Scharpf 1.7.8
+** edited construct function for CNSetLM
+
+2010-08-25 M. Ritchie 1.7.12
+** Renamed functions readIdatFiles2() -> readIdatFiles(), RGtoXY2() -> RGtoXY(), preprocessInfinium2v2() -> preprocessInfinium2(), crlmmIllumina2() -> crlmmIllumina().  These make use of ff objects to store data.
+** Exported crlmmIlluminaV2(), which combines reading in of idats and genotyping in one.  Also added a man page for this function
+** Added close() statements to readIdatFiles(), RGtoXY() and stripNormalize().  Added open() statement to stripNormalize(). Moved close() statement in preprocessInfinium2()
+** tidied up crlmm-illumina.R, removing commented out code.
+
+2010-09-16 M. Ritchie 1.7.14
+** added immuno chip 12 as one of the chip options for Illumina.
+
+2010-09-28 M. Ritchie 1.7.15
+** added functions get.ProtocolData.Illumina(), construct.Illumina() and genotype.Illumina() to maintiain consistency with Rob's Affy functions
+** removed 'save.it', 'load.it', 'snpFile', 'cnFile' arguments from crlmmIllumina(), crlmmIlluminaV2 and preprocessInfinium2().  Updated man pages to reflect these changes.
+** added a switch so that both regular matrix/ff storage can be handled in each function, depending upon whether the ff package has been loaded.
+
+2010-09-30 M. Ritchie 1.7.16
+** copy number A and B intensities now stored in callSet from genotype.Illumina()
+
+
+2010-10-06 M. Ritchie 1.7.19
+** new internal function processIDAT which uses ocLapply() to parallelize pre-processing of Illumina data
+** changes to genotype.Illumina()
+** updated vignettes - crlmmIllumina.Rnw and crlmmIllumina.pdf
+
+2010-10-07 M. Ritchie 1.7.20
+** updated vignettes - crlmmIllumina.Rnw and crlmmIllumina.pdf
+** tidied code and added snp.index to ffrowapply() in genotype.Illumina() when calls and confidence values are being updated in callSet.
+
+2010-10-11 M. Ritchie 1.7.21
+** fixed bug with indexes for ffrowapply() in genotype.Illumina()
+
+2010-10-17 M. Ritchie 1.7.22
+**  added "humanomni25quadv1b" to validCdfName() in utils.R and RGtoXY() in crlmm-illumina.R
+
+2010-11-18 M. Ritchie 1.9.8
+** genotype.Illumina() is now exported and has a man page.  The argument 'outdir' should 
+be used to specify where you want to store the large data objects.  ldPath(outdir) is specified 
+inside preprocessInfinium2()
+** the 'batch' variable is now left empty and must be specified by the user
+** X and Y are now initialized with zeroes by initializeBigMatrix( ,initdata=0) in RGtoXY().
+** open(A(callSet); open(B(callSet) replaces open(callSet) in genotype.Illumina()
+
+2010-12-10 M. Ritchie 1.9.9
+** ffcolapply() now used instead of ffrowapply()
+** ff storage only used to initialize callSet - no longer used in storage of RG, XY, res data created along the way (matrices now used here) etc.
+** removed 'outdir' argument and ldPath() added in 1.9.8
+** verbose argument added to readIdatFiles()
